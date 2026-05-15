@@ -4,7 +4,7 @@
   // ── 1. Read config from <script> tag ──────────────────────────
   var script = document.currentScript;
   var company  = script.getAttribute('data-company')  || 'Support';
-  var position = script.getAttribute('data-position') || 'right';
+  var position = script.getAttribute('data-position') || 'left';
   var botId    = script.getAttribute('data-bot-id')   || '';
   var theme    = script.getAttribute('data-theme')    || '#2563eb'; // custom color support
 
