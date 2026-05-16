@@ -3,10 +3,11 @@
 
   // ── 1. Read config from <script> tag ──────────────────────────
   var script = document.currentScript;
-  var company  = script.getAttribute('data-company')  || 'Support';
-  var position = script.getAttribute('data-position') || 'left';
-  var botId    = script.getAttribute('data-bot-id')   || '';
-  var theme    = script.getAttribute('data-theme')    || '#2563eb'; // custom color support
+  var company   = script.getAttribute('data-company')  || 'Support';
+  var position  = script.getAttribute('data-position') || 'right';
+  var botId     = script.getAttribute('data-bot-id')   || '';
+  var docId     = script.getAttribute('data-doc-id')   || '';
+  var theme     = script.getAttribute('data-theme')    || '#2563eb';
 
   // ── 2. Inject CSS ─────────────────────────────────────────────
   var style = document.createElement('style');
@@ -68,7 +69,7 @@
     '}',
     '._cb_msg{',
       'max-width:80%;padding:10px 14px;border-radius:12px;',
-      'font-size:13px;line-height:1.5;',
+      'font-size:13px;line-height:1.5;word-break:break-word;',
     '}',
     '._cb_bot{',
       'background:#1e293b;color:#cbd5e1;',
@@ -77,6 +78,9 @@
     '._cb_user{',
       'background:' + theme + ';color:#fff;',
       'border-bottom-right-radius:4px;align-self:flex-end;',
+    '}',
+    '._cb_loading{',
+      'font-style:italic;opacity:0.7;font-size:11px;',
     '}',
 
     // Input row
@@ -89,6 +93,7 @@
       'border-radius:12px;border:1px solid rgba(255,255,255,0.1);',
       'background:#1e293b;color:#f1f5f9;font-size:13px;outline:none;',
     '}',
+    '#_cb_input:disabled{opacity:0.6;cursor:not-allowed;}',
     '#_cb_input::placeholder{color:#475569;}',
     '#_cb_send{',
       'padding:10px 14px;border-radius:12px;',
@@ -96,7 +101,8 @@
       'border:none;cursor:pointer;font-size:13px;font-weight:600;',
       'transition:opacity 0.15s;',
     '}',
-    '#_cb_send:hover{opacity:0.85;}',
+    '#_cb_send:hover:not(:disabled){opacity:0.85;}',
+    '#_cb_send:disabled{opacity:0.5;cursor:not-allowed;}',
   ].join('');
   document.head.appendChild(style);
 
@@ -137,22 +143,55 @@
 
   function addMessage(text, type) {
     var msg = document.createElement('div');
-    msg.className = '_cb_msg ' + (type === 'user' ? '_cb_user' : '_cb_bot');
+    msg.className = '_cb_msg ' + (type === 'user' ? '_cb_user' : '_cb_bot') + (type === 'loading' ? ' _cb_loading' : '');
     msg.textContent = text;
     messagesEl.appendChild(msg);
     messagesEl.scrollTop = messagesEl.scrollHeight;
+    return msg;
   }
 
-  function sendMessage() {
+  async function sendMessage() {
     var text = inputEl.value.trim();
-    if (!text) return;
+    if (!text || inputEl.disabled) return;
+    
     addMessage(text, 'user');
     inputEl.value = '';
+    
+    // Disable inputs while loading
+    inputEl.disabled = true;
+    sendEl.disabled = true;
+    
+    var loadingMsg = addMessage('Thinking...', 'loading');
 
-    // Simulate bot reply (replace this with real API call later)
-    setTimeout(function () {
-      addMessage('Thanks for your message! Our team will get back to you soon.', 'bot');
-    }, 800);
+    try {
+      var response = await fetch("https://aidreamadoration.cloud/chatbot/v1/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          doc_id: docId,
+          question: text
+        })
+      });
+
+      var data = await response.json();
+      loadingMsg.remove();
+      
+      if (data && data.answer) {
+        addMessage(data.answer, 'bot');
+      } else if (data && data.detail) {
+        addMessage('Error: ' + data.detail, 'bot');
+      } else {
+        addMessage('Sorry, I couldn\'t process that. Please try again.', 'bot');
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      loadingMsg.remove();
+      addMessage('Network error. Please check your connection.', 'bot');
+    } finally {
+      inputEl.disabled = false;
+      sendEl.disabled = false;
+      inputEl.focus();
+    }
   }
 
   // Toggle open/close
