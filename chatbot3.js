@@ -176,7 +176,7 @@
         body: JSON.stringify({
           doc_id: docId,
           session_id: sessionId,
-          question: text
+          query: text
         })
       });
 
