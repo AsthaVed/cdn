@@ -175,6 +175,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           doc_id: docId,
+          session_id: sessionId,
           question: text
         })
       });
