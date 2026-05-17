@@ -5,7 +5,7 @@
   var script = document.currentScript;
   var company   = script.getAttribute('data-company')  || 'Support';
   var position  = script.getAttribute('data-position') || 'right';
-  var botId     = script.getAttribute('data-bot-id')   || '';
+  var sessionId     = script.getAttribute('data-session-id')   || '';
   var docId     = script.getAttribute('data-doc-id')   || '';
   var theme     = script.getAttribute('data-theme')    || '#2563eb';
 
@@ -140,6 +140,12 @@
   var inputEl    = document.getElementById('_cb_input');
   var sendEl     = document.getElementById('_cb_send');
   var closeEl    = document.getElementById('_cb_close');
+
+  if (!docId || !sessionId || !inputEl) {
+    sendEl.disabled = true;
+    inputEl.disabled = true;
+    inputEl.placeholder = 'Missing docId or sessionId';
+  }
 
   function addMessage(text, type) {
     var msg = document.createElement('div');
