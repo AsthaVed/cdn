@@ -5,9 +5,11 @@
   var script = document.currentScript;
   var company   = script.getAttribute('data-company')  || 'Support';
   var position  = script.getAttribute('data-position') || 'right';
-  var sessionId     = script.getAttribute('data-session-id')   || '';
+  var sessionId = script.getAttribute('data-session-id')   || '';
   var docId     = script.getAttribute('data-doc-id')   || '';
   var theme     = script.getAttribute('data-theme')    || '#2563eb';
+  var token     = script.getAttribute('data-token')    || '';
+  var apiKey    = script.getAttribute('data-api-key')  || '';
 
   // ── 2. Inject CSS ─────────────────────────────────────────────
   var style = document.createElement('style');
@@ -170,9 +172,20 @@
     var loadingMsg = addMessage('Thinking...', 'loading');
 
     try {
-      var response = await fetch("https://aidreamadoration.cloud/chatbot/v1/ask", {
+      var headers = {
+        "Content-Type": "application/json"
+      };
+
+      if (token) {
+        headers["Authorization"] = "Bearer " + token;
+      }
+      if (apiKey) {
+        headers["X-API-Key"] = apiKey;
+      }
+
+      var response = await fetch("https://aidreamadoration.cloud/chatbot-auth/api/v1/chatbot/ask", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify({
           doc_id: docId,
           session_id: sessionId,
